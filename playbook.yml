@@ -1,0 +1,53 @@
+---
+- hosts: all
+  tasks:
+    - apt:
+        update_cache: yes
+        name: "{{ item }}"
+      loop:
+        - apt-transport-https
+        - build-essential
+        - cmake
+        - emacs
+        - git
+        - make
+        - nmap
+        - ntp
+        - rsync
+        
+    - name: Docker ppa key
+      apt_key: 
+        url: https://download.docker.com/linux/ubuntu/gpg
+        state: present
+
+    - name: Docker ppa
+      apt_repository: 
+        repo: 'deb [arch=amd64] https://download.docker.com/linux/ubuntu xenial stable'
+
+    - name: Docker
+      apt:
+        name: docker-ce
+
+    - name: docker-compose
+      get_url:
+        url: https://github.com/docker/compose/releases/download/1.21.2/docker-compose-Linux-x86_64
+        dest: /usr/bin/docker-compose
+        mode: u=rwx,g=xr,o=rx
+
+    
+    - name: Posix users which can use docker
+      user:
+        name: ubuntu
+        groups:
+          - docker
+
+    - name: allows ssh
+      ufw:
+        rule: limit
+        port: ssh
+        proto: tcp
+    
+    - name: Allow access to port 22
+      ufw:
+        rule: allow
+        port: 22
